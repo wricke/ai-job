@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${MYSQL_TEST_URL:${MYSQL_URL:jdbc:mysql://localhost:3306/ai_job_agent_test?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_TEST_USERNAME:${MYSQL_USERNAME:root}}
+    password: ${MYSQL_TEST_PASSWORD:${MYSQL_PASSWORD:}}
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+
+management:
+  health:
+    redis:
+      enabled: false
+
+agent:
+  cache:
+    enabled: true

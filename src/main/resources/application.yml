@@ -1,0 +1,58 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: ai-job-agent
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/ai_job_agent?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+management:
+  health:
+    redis:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    com.hpc.jobagent: INFO
+
+agent:
+  ai:
+    base-url: https://api.deepseek.com
+    api-key: ${DEEPSEEK_API_KEY:}
+    model: deepseek-v4-flash
+    timeout-seconds: 60
+  cache:
+    enabled: true
+  ocr:
+    command: tesseract
+    languages: chi_sim+eng
