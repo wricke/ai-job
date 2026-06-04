@@ -1,8 +1,16 @@
 HELP.md
 target/
 server.*.log
+java-server.*.log
 .env
 .env.*
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
+.venv/
+venv/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
