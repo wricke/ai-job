@@ -22,8 +22,8 @@ public class JobAnalyzerAgent {
         List<String> responsibilities = textAnalyzer.extractResponsibilities(job.getDescription());
         List<String> bonusItems = textAnalyzer.extractBonusItems(job.getDescription());
         String aiSummary = aiClient.complete(
-                "jd-analyzer: summarize a job description for backend internship matching in Chinese. Use plain text only. Do not use Markdown markers such as **, ###, bullet headings, or code fences.",
-                job.getDescription()
+                "jd-analyzer: summarize a job description for job matching in Chinese. Extract the real role direction, responsibilities, tools and requirements from the JD. Do not assume backend/software direction unless the JD clearly contains it. Use plain text only. Do not use Markdown markers such as **, ###, bullet headings, or code fences.",
+                "jobTitle=" + job.getTitle() + "\njobDescription=\n" + job.getDescription()
         );
         return new JobInsight(requiredSkills, responsibilities, bonusItems, aiSummary);
     }

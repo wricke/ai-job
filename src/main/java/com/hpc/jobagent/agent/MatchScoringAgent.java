@@ -32,17 +32,20 @@ public class MatchScoringAgent {
         if (!missing.isEmpty()) {
             risks.add("JD 中出现但简历未明显体现：" + String.join("、", missing));
         }
-        if (resume.projects().size() < 2) {
-            risks.add("项目数量偏少，建议补充一个更贴近目标岗位的 AI Agent 或业务系统项目");
+        if (!requiredSkills.isEmpty() && matched.isEmpty()) {
+            risks.add("简历与岗位要求的显性关键词重合较少，建议优先调整目标方向或补充更相关的作品/项目经历");
         }
-        if (!resumeSkills.contains("MySQL")) {
-            risks.add("数据库能力是后端实习常见考点，简历需要体现表设计、索引或事务");
+        if (resume.projects().size() < 2) {
+            risks.add("项目、作品或实践经历数量偏少，建议补充一个更贴近目标岗位的代表性案例");
+        }
+        if (requiredSkills.isEmpty()) {
+            risks.add("岗位要求中可识别关键词较少，建议补充更明确的 JD 或目标岗位描述以提升匹配准确度");
         }
         if (risks.isEmpty()) {
             risks.add("主要风险较低，重点准备项目细节追问即可");
         }
 
-        String reason = "匹配技能 " + matched.size() + "/" + Math.max(requiredSkills.size(), 1)
+        String reason = "匹配关键词 " + matched.size() + "/" + Math.max(requiredSkills.size(), 1)
                 + "，项目表达带来 " + projectBonus + " 分加成。";
         return new MatchDetail(score, matched, missing, risks, reason);
     }
