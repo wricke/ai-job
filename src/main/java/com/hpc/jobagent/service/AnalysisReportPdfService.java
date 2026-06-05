@@ -325,7 +325,7 @@ public class AnalysisReportPdfService {
         }
 
         private void bullet(String text) throws IOException {
-            write("• " + text, 11, LINE_HEIGHT);
+            write("- " + text, 11, LINE_HEIGHT);
         }
 
         private void gap(float amount) throws IOException {
@@ -375,19 +375,67 @@ public class AnalysisReportPdfService {
             return font.getStringWidth(value) / 1000f * size;
         }
 
-        private String clean(String value) {
+        private String clean(String value) throws IOException {
             if (value == null) {
                 return "";
             }
             StringBuilder result = new StringBuilder();
-            value.replace("\r\n", "\n").replace('\r', '\n').codePoints().forEach(codePoint -> {
-                if (codePoint == '\n' || codePoint == '\t') {
-                    result.appendCodePoint(codePoint);
-                } else if (!Character.isISOControl(codePoint) && codePoint <= 0xFFFF) {
-                    result.appendCodePoint(codePoint);
-                }
-            });
+            int[] codePoints = value.replace("\r\n", "\n").replace('\r', '\n').codePoints().toArray();
+            for (int codePoint : codePoints) {
+                appendPdfSafe(result, codePoint);
+            }
             return result.toString().replace('\t', ' ');
+        }
+
+        private void appendPdfSafe(StringBuilder result, int codePoint) throws IOException {
+            if (codePoint == '\n' || codePoint == '\t') {
+                result.appendCodePoint(codePoint);
+                return;
+            }
+            if (Character.isISOControl(codePoint) || isEmojiControl(codePoint)) {
+                return;
+            }
+            String replacement = replacementFor(codePoint);
+            if (replacement == null) {
+                replacement = new String(Character.toChars(codePoint));
+            }
+            if (canEncode(replacement)) {
+                result.append(replacement);
+                return;
+            }
+            for (int nestedCodePoint : replacement.codePoints().toArray()) {
+                String nested = new String(Character.toChars(nestedCodePoint));
+                result.append(canEncode(nested) ? nested : " ");
+            }
+        }
+
+        private boolean canEncode(String value) throws IOException {
+            try {
+                font.encode(value);
+                return true;
+            } catch (IllegalArgumentException ex) {
+                return false;
+            }
+        }
+
+        private boolean isEmojiControl(int codePoint) {
+            return codePoint == 0x200D
+                    || codePoint == 0x20E3
+                    || (codePoint >= 0xFE00 && codePoint <= 0xFE0F)
+                    || (codePoint >= 0xE0100 && codePoint <= 0xE01EF)
+                    || (codePoint >= 0x1F3FB && codePoint <= 0x1F3FF);
+        }
+
+        private String replacementFor(int codePoint) {
+            return switch (codePoint) {
+                case 0x2705, 0x2713, 0x2714, 0x2611 -> "[完成]";
+                case 0x274C, 0x274E, 0x2716, 0x2717 -> "[失败]";
+                case 0x26A0 -> "[警告]";
+                case 0x1F4A1 -> "[提示]";
+                case 0x1F680 -> "[启动]";
+                case 0x1F525 -> "[重点]";
+                default -> codePoint > 0xFFFF ? " " : null;
+            };
         }
 
         private void ensureSpace(float amount) throws IOException {
