@@ -13,7 +13,7 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends fonts-noto-cjk fontconfig \
+    && apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk fontconfig \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /workspace/target/ai-job-agent-0.0.1-SNAPSHOT.jar app.jar

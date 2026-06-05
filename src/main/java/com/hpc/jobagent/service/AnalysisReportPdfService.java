@@ -18,6 +18,7 @@ import com.hpc.jobagent.domain.AnalysisTask;
 import com.hpc.jobagent.domain.JobPosting;
 import com.hpc.jobagent.domain.ResumeProfile;
 import org.apache.fontbox.ttf.TrueTypeCollection;
+import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -221,9 +222,9 @@ public class AnalysisReportPdfService {
                 "C:/Windows/Fonts/msyh.ttc",
                 "C:/Windows/Fonts/simsun.ttc",
                 "C:/Windows/Fonts/simhei.ttf",
+                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
                 "/usr/share/opentype/noto/NotoSansCJK-Regular.ttc",
                 "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
         );
         for (String path : fontPaths) {
@@ -248,7 +249,7 @@ public class AnalysisReportPdfService {
         FontHolder holder = new FontHolder();
         try {
             collection.processAllFonts(ttf -> {
-                if (holder.font == null) {
+                if (holder.font == null && hasGlyfTable(ttf)) {
                     holder.font = PDType0Font.load(document, ttf, true);
                 }
             });
@@ -260,6 +261,14 @@ public class AnalysisReportPdfService {
         } catch (IOException | RuntimeException ex) {
             collection.close();
             throw ex;
+        }
+    }
+
+    private boolean hasGlyfTable(TrueTypeFont font) {
+        try {
+            return font.getGlyph() != null;
+        } catch (IOException | RuntimeException ex) {
+            return false;
         }
     }
 
