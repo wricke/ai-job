@@ -30,7 +30,7 @@
           <button id="registerTab" class="auth-tab" type="button" role="tab" aria-selected="false">注册</button>
         </div>
 
-        <div id="loginBox" class="auth-box">
+        <form id="loginForm" class="auth-box" novalidate>
           <h2>登录</h2>
           <label>用户名
             <input id="loginUsername" autocomplete="username" placeholder="请输入用户名" required minlength="3" maxlength="40" aria-describedby="loginUsernameError">
@@ -40,10 +40,10 @@
             <input id="loginPassword" type="password" autocomplete="current-password" placeholder="请输入密码" required minlength="6" maxlength="120" aria-describedby="loginPasswordError">
             <span id="loginPasswordError" class="field-error" aria-live="polite"></span>
           </label>
-          <button id="loginBtn" class="primary wide" type="button">登录</button>
-        </div>
+          <button id="loginBtn" class="primary wide" type="submit">登录</button>
+        </form>
 
-        <div id="registerBox" class="auth-box hidden">
+        <form id="registerForm" class="auth-box hidden" novalidate>
           <h2>注册</h2>
           <label>用户名
             <input id="registerUsername" autocomplete="username" placeholder="3 到 40 位" required minlength="3" maxlength="40" aria-describedby="registerUsernameError">
@@ -53,8 +53,8 @@
             <input id="registerPassword" type="password" autocomplete="new-password" placeholder="至少 6 位" required minlength="6" maxlength="120" aria-describedby="registerPasswordError">
             <span id="registerPasswordError" class="field-error" aria-live="polite"></span>
           </label>
-          <button id="registerBtn" class="blue wide" type="button">注册并登录</button>
-        </div>
+          <button id="registerBtn" class="blue wide" type="submit">注册并登录</button>
+        </form>
 
         <div class="auth-foot">
           <span class="status-dot" id="healthDot"></span>

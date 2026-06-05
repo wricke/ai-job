@@ -80,7 +80,12 @@ async function api(path, options = {}) {
     ? { ...(customHeaders || {}) }
     : { "Content-Type": "application/json", ...(customHeaders || {}) };
 
-  const response = await fetch(path, { ...rest, headers, credentials: "same-origin" });
+  let response;
+  try {
+    response = await fetch(path, { ...rest, headers, credentials: "same-origin" });
+  } catch (_) {
+    throw new Error("服务暂时不可用，请稍后重试");
+  }
   const rawBody = await response.text();
   let body = null;
   if (rawBody) {
@@ -171,10 +176,23 @@ function readAuthValues(mode) {
   return { username: normalizedUsername, password };
 }
 
+function setAuthApiError(mode, message) {
+  const text = normalizeApiMessage(message);
+  if (mode === "login" && text.includes("用户名或密码")) {
+    setFieldError("loginPassword", text);
+  }
+  if (mode === "register" && text.includes("用户名")) {
+    setFieldError("registerUsername", text);
+  }
+  if (mode === "register" && text.includes("密码")) {
+    setFieldError("registerPassword", text);
+  }
+}
+
 function setAuthMode(mode) {
   const loginMode = mode === "login";
-  $("loginBox").classList.toggle("hidden", !loginMode);
-  $("registerBox").classList.toggle("hidden", loginMode);
+  $("loginForm").classList.toggle("hidden", !loginMode);
+  $("registerForm").classList.toggle("hidden", loginMode);
   $("loginTab").classList.toggle("active", loginMode);
   $("registerTab").classList.toggle("active", !loginMode);
   $("loginTab").setAttribute("aria-selected", String(loginMode));
@@ -194,6 +212,9 @@ async function login() {
       body: JSON.stringify(values)
     });
     window.location.href = "/dashboard.html";
+  } catch (error) {
+    setAuthApiError("login", error.message);
+    throw error;
   } finally {
     restore();
   }
@@ -209,13 +230,21 @@ async function register() {
       body: JSON.stringify(values)
     });
     window.location.href = "/dashboard.html";
+  } catch (error) {
+    setAuthApiError("register", error.message);
+    throw error;
   } finally {
     restore();
   }
 }
 
 async function checkAuth() {
-  const response = await fetch("/api/auth/me", { credentials: "same-origin" });
+  let response;
+  try {
+    response = await fetch("/api/auth/me", { credentials: "same-origin" });
+  } catch (_) {
+    return { authenticated: false };
+  }
   if (!response.ok) return { authenticated: false };
   return response.json();
 }
@@ -231,29 +260,35 @@ async function loadHealth() {
   }
 }
 
+function bindAuthEvents() {
+  if ($("loginForm").dataset.bound) return;
+  $("loginForm").dataset.bound = "true";
+  $("registerForm").dataset.bound = "true";
+  $("loginTab").addEventListener("click", () => setAuthMode("login"));
+  $("registerTab").addEventListener("click", () => setAuthMode("register"));
+  $("loginForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    login().catch((error) => showToast(error.message));
+  });
+  $("registerForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    register().catch((error) => showToast(error.message));
+  });
+  ["loginUsername", "loginPassword"].forEach((id) => {
+    $(id).addEventListener("input", () => setFieldError(id, ""));
+  });
+  ["registerUsername", "registerPassword"].forEach((id) => {
+    $(id).addEventListener("input", () => setFieldError(id, ""));
+  });
+}
+
 async function initAuthPage() {
+  bindAuthEvents();
   await loadHealth();
   const user = await checkAuth();
   if (user.authenticated) {
     window.location.href = "/dashboard.html";
-    return;
   }
-  $("loginTab").addEventListener("click", () => setAuthMode("login"));
-  $("registerTab").addEventListener("click", () => setAuthMode("register"));
-  $("loginBtn").addEventListener("click", () => login().catch((error) => showToast(error.message)));
-  $("registerBtn").addEventListener("click", () => register().catch((error) => showToast(error.message)));
-  ["loginUsername", "loginPassword"].forEach((id) => {
-    $(id).addEventListener("input", () => setFieldError(id, ""));
-    $(id).addEventListener("keydown", (event) => {
-      if (event.key === "Enter") login().catch((error) => showToast(error.message));
-    });
-  });
-  ["registerUsername", "registerPassword"].forEach((id) => {
-    $(id).addEventListener("input", () => setFieldError(id, ""));
-    $(id).addEventListener("keydown", (event) => {
-      if (event.key === "Enter") register().catch((error) => showToast(error.message));
-    });
-  });
 }
 
 async function initShell() {
