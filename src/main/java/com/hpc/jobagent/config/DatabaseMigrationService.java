@@ -24,9 +24,8 @@ public class DatabaseMigrationService {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
                 FROM information_schema.columns
-                WHERE table_schema = DATABASE()
-                  AND table_name = ?
-                  AND column_name = ?
+                WHERE LOWER(table_name) = LOWER(?)
+                  AND LOWER(column_name) = LOWER(?)
                 """, Integer.class, tableName, columnName);
         if (count != null && count == 0) {
             jdbcTemplate.execute("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + definition);

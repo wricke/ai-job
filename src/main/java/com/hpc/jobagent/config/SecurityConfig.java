@@ -23,7 +23,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper objectMapper) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry -> registry
-                        .requestMatchers("/", "/index.html", "/api/auth/**", "/actuator/health").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/dashboard.html",
+                                "/resumes.html",
+                                "/recommendations.html",
+                                "/analyses.html",
+                                "/assets/**",
+                                "/api/auth/**",
+                                "/actuator/health"
+                        ).permitAll()
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

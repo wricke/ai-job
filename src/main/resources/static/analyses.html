@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>职途雷达 · 分析报告</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body data-page="analyses">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <strong>职途雷达</strong>
+        <span>AI 岗位匹配助手</span>
+      </div>
+      <nav class="nav" aria-label="主导航">
+        <a href="/dashboard.html" data-nav="dashboard">工作台</a>
+        <a href="/resumes.html" data-nav="resumes">简历</a>
+        <a href="/recommendations.html" data-nav="recommendations">岗位推荐</a>
+        <a href="/analyses.html" data-nav="analyses">分析报告</a>
+      </nav>
+      <div class="side-footer">
+        <div class="service-chip"><span class="status-dot" id="healthDot"></span><span id="healthText">检测中</span></div>
+        <div class="user-chip" id="userText">用户：-</div>
+        <button id="logoutBtn" type="button">退出登录</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="page-title">
+          <h1>分析报告</h1>
+          <p>选择简历和岗位，生成匹配评分、能力短板、优化建议和面试准备问题。</p>
+        </div>
+        <div class="top-actions">
+          <button id="refreshBtn" type="button">刷新</button>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>分析对象</h2>
+          <span id="analysisStatus" class="status">等待中</span>
+        </div>
+        <div class="panel-body">
+          <div class="form-row">
+            <label>简历
+              <select id="analysisResumeSelect"></select>
+            </label>
+            <label>推荐岗位
+              <select id="analysisJobSelect"></select>
+            </label>
+          </div>
+          <div class="actions">
+            <button id="startAnalysisBtn" class="primary" type="button">启动分析</button>
+            <a class="button-link" href="/recommendations.html">先生成岗位</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid cols-main">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>匹配报告</h2>
+          </div>
+          <div class="panel-body">
+            <div class="score-panel">
+              <div id="scoreBox" class="score">--</div>
+              <div id="summaryBox" class="summary">选择简历和岗位后启动分析，报告会在这里展示。</div>
+            </div>
+            <div class="report-grid">
+              <div class="mini-block">
+                <div class="mini-title">匹配技能</div>
+                <div id="matchedSkills" class="tag-wrap"></div>
+              </div>
+              <div class="mini-block">
+                <div class="mini-title">待补强技能</div>
+                <div id="missingSkills" class="tag-wrap"></div>
+              </div>
+            </div>
+            <div class="mini-block">
+              <div class="mini-title">简历优化建议</div>
+              <ul id="suggestionsList" class="list"></ul>
+            </div>
+            <div class="mini-block">
+              <div class="mini-title">面试准备问题</div>
+              <ul id="questionsList" class="list"></ul>
+            </div>
+            <div class="mini-block">
+              <div class="mini-title">执行过程</div>
+              <div id="traceBox" class="trace-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>历史分析</h2>
+            <button id="loadHistoryBtn" type="button">刷新历史</button>
+          </div>
+          <div id="historyBox" class="panel-body"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
