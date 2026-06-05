@@ -43,7 +43,7 @@ Health Check:
 
 ## 数据库说明
 
-Render profile 默认使用 H2 文件数据库，适合演示部署。
+Render profile 使用 H2 文件数据库，适合快速部署测试。
 
 如果要接真实 MySQL，可以在 Render Environment 中配置：
 
