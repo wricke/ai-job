@@ -5,6 +5,7 @@ const state = {
   jobs: [],
   analyses: [],
   activeResumeId: null,
+  activeAnalysisId: null,
   pollTimer: null
 };
 
@@ -635,6 +636,7 @@ async function initAnalysesPage() {
     renderJobOptions("analysisJobSelect", Number($("analysisResumeSelect").value));
   });
   $("startAnalysisBtn").addEventListener("click", () => startAnalysis().catch((error) => showToast(error.message)));
+  $("downloadReportBtn").addEventListener("click", () => downloadReport().catch((error) => showToast(error.message)));
   $("loadHistoryBtn").addEventListener("click", () => refreshHistory().catch((error) => showToast(error.message)));
   $("historyBox").addEventListener("click", (event) => {
     const row = event.target.closest("tr[data-id]");
@@ -643,8 +645,10 @@ async function initAnalysesPage() {
 }
 
 function renderEmptyReport() {
+  state.activeAnalysisId = null;
   setText("analysisStatus", "等待中");
   if (has("analysisStatus")) $("analysisStatus").className = "status";
+  if (has("downloadReportBtn")) $("downloadReportBtn").disabled = true;
   setText("scoreBox", "--");
   setText("summaryBox", "选择简历和岗位后启动分析，报告会在这里展示。");
   setHtml("matchedSkills", tagList([]));
@@ -689,6 +693,44 @@ async function loadAnalysis(id) {
   renderReport(analysis);
 }
 
+async function downloadReport() {
+  if (!state.activeAnalysisId) {
+    showToast("请先生成或选择一份分析报告");
+    return;
+  }
+  const restore = setButtonLoading($("downloadReportBtn"), "下载中");
+  try {
+    const response = await fetch(`/api/analyses/${state.activeAnalysisId}/report.pdf`, {
+      credentials: "same-origin"
+    });
+    if (!response.ok) {
+      if (response.status === 401) redirectToAuth();
+      const rawBody = await response.text();
+      let message = rawBody;
+      try {
+        const body = JSON.parse(rawBody);
+        message = body.message || body.detail || rawBody;
+      } catch (_) {
+        // Keep the raw response text when the backend did not return JSON.
+      }
+      throw new Error(normalizeApiMessage(message || response.statusText));
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ai-job-analysis-${state.activeAnalysisId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    showToast("PDF 已开始下载");
+  } finally {
+    restore();
+  }
+}
+
 function pollAnalysis(id) {
   window.clearInterval(state.pollTimer);
   state.pollTimer = window.setInterval(async () => {
@@ -708,8 +750,10 @@ function pollAnalysis(id) {
 
 function renderReport(analysis) {
   const status = analysis.status || "PENDING";
+  state.activeAnalysisId = analysis.id;
   setText("analysisStatus", statusText(status));
   $("analysisStatus").className = `status ${statusClass(status)}`;
+  if (has("downloadReportBtn")) $("downloadReportBtn").disabled = status !== "COMPLETED";
   setText("scoreBox", analysis.matchScore ?? "--");
   setText("summaryBox", analysis.errorMessage || analysis.summary || "系统正在分析中，请稍等。");
 
