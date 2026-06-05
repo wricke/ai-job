@@ -9,3 +9,9 @@ services:
         value: render
       - key: DEEPSEEK_API_KEY
         sync: false
+      - key: MYSQL_URL
+        sync: false
+      - key: MYSQL_USERNAME
+        sync: false
+      - key: MYSQL_PASSWORD
+        sync: false

@@ -3,18 +3,14 @@ server:
 
 spring:
   datasource:
-    url: ${RENDER_DATABASE_URL:jdbc:h2:file:/tmp/ai_job_agent_render;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1}
-    driver-class-name: ${RENDER_DATABASE_DRIVER:org.h2.Driver}
-    username: ${RENDER_DATABASE_USERNAME:sa}
-    password: ${RENDER_DATABASE_PASSWORD:}
+    url: ${MYSQL_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
   sql:
     init:
       mode: always
       encoding: UTF-8
-  h2:
-    console:
-      enabled: false
-
 management:
   health:
     redis:
