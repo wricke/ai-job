@@ -37,7 +37,7 @@ public class SuggestionAgent {
         }
 
         String aiAdvice = aiClient.complete(
-                "suggestion: generate resume improvement advice for a backend internship candidate in Chinese.",
+                "suggestion: generate resume improvement advice for a backend internship candidate in Chinese. Use plain text only. Do not use Markdown markers such as **, ###, bullet headings, or code fences.",
                 "matched=" + match.matchedSkills() + ", missing=" + match.missingSkills()
         );
         return new SuggestionPack(resumeImprovements, projectRewriteTips, learningPlan, aiAdvice);

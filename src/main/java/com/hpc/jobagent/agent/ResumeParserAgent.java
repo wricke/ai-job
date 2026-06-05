@@ -35,7 +35,7 @@ public class ResumeParserAgent {
             strengths.add("简历中已有可用于岗位匹配的项目和技能信息");
         }
         String aiSummary = aiClient.complete(
-                "resume-parser: summarize a resume for backend internship matching in Chinese.",
+                "resume-parser: summarize a resume for backend internship matching in Chinese. Use plain text only. Do not use Markdown markers such as **, ###, bullet headings, or code fences.",
                 resume.getContent()
         );
         return new ResumeInsight(skills, projects, strengths, aiSummary);

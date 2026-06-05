@@ -17,7 +17,7 @@ function has(id) {
 
 function setText(id, value) {
   const element = $(id);
-  if (element) element.textContent = value;
+  if (element) element.textContent = cleanDisplayText(value);
 }
 
 function setHtml(id, value) {
@@ -26,12 +26,25 @@ function setHtml(id, value) {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "")
+  return cleanDisplayText(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function cleanDisplayText(value) {
+  return String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/```[a-zA-Z0-9_-]*\n?/g, "")
+    .replace(/```/g, "")
+    .replace(/(^|\n)\s{0,3}#{1,6}\s*/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/\*\*/g, "")
+    .replace(/#{3,}/g, "")
+    .trim();
 }
 
 function fmt(value) {

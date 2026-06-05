@@ -45,7 +45,7 @@ public class JobRecommendationAgent {
         return """
                 你是一个面向中国互联网校招和实习求职的职业规划 Agent。
                 你需要只根据用户简历，推荐适合投递的岗位方向，并给出适配度、理由、短板、搜索关键词和准备建议。
-                请只返回合法 JSON，不要 Markdown，不要代码块，不要额外解释。
+                请只返回合法 JSON，不要 Markdown，不要代码块，不要额外解释。JSON 字符串内容也不要包含 **、###、``` 等 Markdown 标记。
                 JSON 结构必须是：
                 {
                   "summary": "一句话总结候选人的求职定位",

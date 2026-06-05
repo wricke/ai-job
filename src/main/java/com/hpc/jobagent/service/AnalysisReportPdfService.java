@@ -389,11 +389,24 @@ public class AnalysisReportPdfService {
                 return "";
             }
             StringBuilder result = new StringBuilder();
-            int[] codePoints = value.replace("\r\n", "\n").replace('\r', '\n').codePoints().toArray();
+            int[] codePoints = stripMarkdown(value).codePoints().toArray();
             for (int codePoint : codePoints) {
                 appendPdfSafe(result, codePoint);
             }
             return result.toString().replace('\t', ' ');
+        }
+
+        private String stripMarkdown(String value) {
+            return value.replace("\r\n", "\n")
+                    .replace('\r', '\n')
+                    .replaceAll("```[a-zA-Z0-9_-]*\\n?", "")
+                    .replace("```", "")
+                    .replaceAll("(?m)^\\s{0,3}#{1,6}\\s*", "")
+                    .replaceAll("\\*\\*([^*]+)\\*\\*", "$1")
+                    .replaceAll("__([^_]+)__", "$1")
+                    .replace("**", "")
+                    .replaceAll("#{3,}", "")
+                    .strip();
         }
 
         private void appendPdfSafe(StringBuilder result, int codePoint) throws IOException {

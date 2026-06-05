@@ -35,7 +35,7 @@ public class InterviewAgent {
         talkingPoints.add("把匹配技能串到项目里讲，不要只停留在技能列表。");
 
         String aiAdvice = aiClient.complete(
-                "interview: generate interview preparation advice for a backend internship candidate in Chinese.",
+                "interview: generate interview preparation advice for a backend internship candidate in Chinese. Use plain text only. Do not use Markdown markers such as **, ###, bullet headings, or code fences.",
                 "requiredSkills=" + job.requiredSkills() + ", risks=" + match.risks()
         );
         return new InterviewPack(questions, talkingPoints, aiAdvice);
