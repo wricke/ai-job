@@ -1,0 +1,15 @@
+.git
+target/
+*.log
+server.*.log
+java-server.*.log
+.env
+.env.*
+*.db
+*.sqlite
+*.sqlite3
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+ai-job-python-agent/
