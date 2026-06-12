@@ -12,7 +12,7 @@ spring:
     url: ${MYSQL_URL:jdbc:mysql://localhost:3306/ai_job_agent?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:}
+    password: ${MYSQL_PASSWORD:hpc2003}
   sql:
     init:
       mode: always
@@ -48,7 +48,7 @@ logging:
 agent:
   ai:
     base-url: https://api.deepseek.com
-    api-key: ${DEEPSEEK_API_KEY:}
+    api-key: ${DEEPSEEK_API_KEY:sk-6765c10f44324f1ca189d06a4bb8ebe8}
     model: deepseek-v4-flash
     timeout-seconds: 60
   cache:

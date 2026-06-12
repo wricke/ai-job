@@ -37,7 +37,7 @@ public class JobRecommendationAgent {
             RecommendationPayload payload = objectMapper.readValue(extractJson(rawAdvice), RecommendationPayload.class);
             return normalize(resume, payload, rawAdvice);
         } catch (JsonProcessingException | IllegalArgumentException ex) {
-            return fallback(resume, skills, rawAdvice);
+            return fallback(resume, skills, projects, rawAdvice);
         }
     }
 
@@ -45,7 +45,7 @@ public class JobRecommendationAgent {
         return """
                 你是一个面向中国校招和实习求职的职业规划助手。
                 你需要只根据用户简历中的真实专业、目标岗位、工具、作品、项目和经历，推荐适合投递的岗位方向，并给出适配度、理由、短板、搜索关键词和准备建议。
-                不要默认推荐后端、软件开发或 AI 方向；只有简历明确体现相关技术经历时才推荐。
+                不要默认推荐任何固定岗位方向；只有简历明确体现相关经历、技能或目标时才推荐。
                 请只返回合法 JSON，不要 Markdown，不要代码块，不要额外解释。JSON 字符串内容也不要包含 **、###、``` 等 Markdown 标记。
                 JSON 结构必须是：
                 {
@@ -112,7 +112,12 @@ public class JobRecommendationAgent {
             }
         }
         if (items.isEmpty()) {
-            return fallback(resume, textAnalyzer.findSkills(resume.getContent()), rawAdvice);
+            return fallback(
+                    resume,
+                    textAnalyzer.findSkills(resume.getContent()),
+                    textAnalyzer.extractProjectSignals(resume.getContent()),
+                    rawAdvice
+            );
         }
         return new JobRecommendationResponse(
                 resume.getId(),
@@ -126,57 +131,26 @@ public class JobRecommendationAgent {
         );
     }
 
-    private JobRecommendationResponse fallback(ResumeProfile resume, List<String> skills, String rawAdvice) {
+    private JobRecommendationResponse fallback(ResumeProfile resume,
+                                               List<String> skills,
+                                               List<String> projects,
+                                               String rawAdvice) {
         List<JobRecommendationItem> items = new ArrayList<>();
-        String text = (resume.getTargetRole() + "\n" + resume.getContent()).toLowerCase();
-        if (isDesignProfile(skills, text)) {
-            items.add(fallbackItem("视觉设计实习生", skills, 84,
-                    List.of("简历体现平面设计、视觉表达或 Adobe 工具基础", "适合用作品集展示版式、色彩和项目产出"),
-                    List.of("作品集完整度", "品牌视觉规范", "商业项目复盘")));
-            items.add(fallbackItem("交互/UI 设计实习生", skills, 76,
-                    List.of("简历出现交互设计、界面设计或数字媒体相关经历", "可以用 App、小程序或交互作品证明设计思路"),
-                    List.of("用户调研", "原型设计", "可用性测试")));
-        }
-        if (isThreeDProfile(skills)) {
-            items.add(fallbackItem("三维/空间设计实习生", skills, 82,
-                    List.of("简历体现 SketchUp、3ds Max、Maya 或三维建模能力", "适合用三维作品展示建模、材质、空间表现和最终效果"),
-                    List.of("渲染表现", "作品集排版", "项目落地说明")));
-            items.add(fallbackItem("VR 交互设计实习生", skills, 78,
-                    List.of("简历出现 VR 交互或数字媒体项目经历", "适合强调沉浸式体验、交互流程和场景设计"),
-                    List.of("交互原型", "用户体验说明", "项目演示视频")));
-        }
-        if (isMediaProfile(skills)) {
-            items.add(fallbackItem("新媒体视觉/视频剪辑实习生", skills, 76,
-                    List.of("简历体现视频剪辑、后期或内容制作能力", "适合用短视频、宣传物料和视觉包装作品证明执行力"),
-                    List.of("镜头节奏", "数据复盘", "内容策划")));
-        }
-        if (containsAny(skills, "Python", "数据分析")) {
-            items.add(fallbackItem("数据分析实习生", skills, 74,
-                    List.of("简历体现数据处理或分析工具基础", "适合用课程项目、报表或可视化作品证明分析能力"),
-                    List.of("Excel/SQL 分析案例", "数据可视化", "业务指标理解")));
-        }
-        if (isBackendProfile(skills)) {
-            items.add(fallbackItem("Java 后端开发实习生", skills, 82,
-                    List.of("简历技能与后端开发岗位方向接近", "适合继续围绕 Spring Boot、MySQL、接口开发打磨项目表达"),
-                    List.of("Redis", "MySQL 索引", "接口性能优化")));
-        }
-        if (skills.contains("AI Agent")) {
-            items.add(fallbackItem("AI 应用开发实习生", skills, 78,
-                    List.of("简历中出现 AI Agent 或大模型相关信号", "可以把相关项目作为差异化亮点"),
-                    List.of("RAG", "Prompt 设计", "向量数据库", "模型接口调用")));
-        }
-        if (items.isEmpty()) {
-            items.add(fallbackItem("综合类实习岗位", skills, 68,
-                    List.of("简历中已有可迁移的学习、项目或实践经历", "建议结合目标岗位进一步补充关键词和成果说明"),
-                    List.of("目标岗位关键词", "代表性项目", "量化结果")));
+        int score = 82;
+        for (String direction : fallbackDirections(resume, skills)) {
+            items.add(fallbackItem(direction, skills, projects, score));
+            score = Math.max(68, score - 5);
+            if (items.size() >= 6) {
+                break;
+            }
         }
 
         return new JobRecommendationResponse(
                 resume.getId(),
                 resume.getTitle(),
-                "DeepSeek 返回内容已保留，系统同时生成了可展示的岗位方向兜底结果。",
+                "AI 返回内容已保留，系统已根据目标岗位、技能和经历信号生成兜底推荐。",
                 items,
-                fallbackGaps(skills, text),
+                fallbackGaps(skills, projects, items),
                 fallbackKeywords(items),
                 rawAdvice,
                 LocalDateTime.now()
@@ -185,18 +159,27 @@ public class JobRecommendationAgent {
 
     private JobRecommendationItem fallbackItem(String roleTitle,
                                                List<String> skills,
-                                               int fitScore,
-                                               List<String> reasons,
-                                               List<String> missingSkills) {
+                                               List<String> projects,
+                                               int fitScore) {
+        List<String> matchedSkills = limitStrings(skills, 8);
+        List<String> reasons = new ArrayList<>();
+        reasons.add("简历或目标岗位中出现「" + roleTitle + "」相关信号，可作为投递方向继续验证。");
+        if (!matchedSkills.isEmpty()) {
+            reasons.add("已提取到可复用能力关键词：" + String.join("、", limitStrings(matchedSkills, 5)));
+        }
+        if (!projects.isEmpty()) {
+            reasons.add("可结合经历「" + shortText(projects.get(0), 50) + "」说明职责、过程和结果。");
+        }
+
         return new JobRecommendationItem(
                 roleTitle,
                 fitScore,
                 normalizeLevel(null, fitScore),
-                reasons,
-                limitStrings(skills, 8),
-                missingSkills,
-                List.of(roleTitle, roleTitle.replace("实习生", "实习"), roleTitle.replace("实习生", "校招")),
-                List.of("把项目描述整理成背景、方案、结果三段", "准备 2 到 3 个能深入追问的项目技术点"),
+                limitStrings(reasons, 5),
+                matchedSkills,
+                fallbackMissingSkills(roleTitle, matchedSkills, projects),
+                fallbackSearchKeywords(roleTitle, matchedSkills),
+                fallbackPreparationTips(roleTitle, matchedSkills, projects),
                 null
         );
     }
@@ -244,56 +227,111 @@ public class JobRecommendationAgent {
         return values == null ? List.of() : values;
     }
 
-    private boolean isDesignProfile(List<String> skills, String text) {
-        return containsAny(skills, "平面设计", "视觉设计", "UI 设计", "交互设计", "Photoshop", "Illustrator")
-                || text.contains("平面设计")
-                || text.contains("视觉")
-                || text.contains("数字媒体")
-                || text.contains("交互设计")
-                || text.contains("ui")
-                || text.contains("作品集")
-                || text.contains("海报")
-                || text.contains("版式");
-    }
-
-    private boolean isThreeDProfile(List<String> skills) {
-        return containsAny(skills, "三维建模", "SketchUp", "3ds Max", "Maya", "Mars", "VR 交互");
-    }
-
-    private boolean isMediaProfile(List<String> skills) {
-        return containsAny(skills, "Premiere", "After Effects", "视频剪辑");
-    }
-
-    private boolean isBackendProfile(List<String> skills) {
-        return containsAny(skills, "Java", "Spring Boot", "MyBatis", "MySQL", "Redis", "RabbitMQ");
-    }
-
-    private boolean containsAny(List<String> values, String... targets) {
-        for (String target : targets) {
-            if (values.contains(target)) {
-                return true;
+    private List<String> fallbackDirections(ResumeProfile resume, List<String> skills) {
+        Set<String> directions = new LinkedHashSet<>();
+        addDirection(directions, resume.getTargetRole());
+        addDirection(directions, resume.getTitle());
+        for (String skill : safeList(skills)) {
+            addDirection(directions, skill);
+            if (directions.size() >= 6) {
+                break;
             }
         }
-        return false;
+        if (directions.isEmpty()) {
+            directions.add("目标岗位方向");
+        }
+        return new ArrayList<>(directions);
     }
 
-    private List<String> fallbackGaps(List<String> skills, String text) {
-        if (isDesignProfile(skills, text) || isThreeDProfile(skills) || isMediaProfile(skills)) {
-            return List.of("建议补充作品集链接或作品截图", "为每个作品补充目标、职责、工具、过程和结果", "准备 2 到 3 个可深入讲解的代表性作品");
+    private void addDirection(Set<String> directions, String value) {
+        String direction = cleanDirection(value);
+        if (!direction.isBlank()) {
+            directions.add(direction + "方向");
         }
-        if (isBackendProfile(skills)) {
-            return List.of("建议补充项目量化结果", "准备数据库、接口设计和异常处理追问");
+    }
+
+    private String cleanDirection(String value) {
+        String direction = value == null ? "" : value.strip()
+                .replaceAll("(简历|求职|个人|方向)+$", "")
+                .replaceAll("(实习生?|校招|岗位|职位|工作)$", "")
+                .replaceAll("[：:，,。；;]+$", "")
+                .strip();
+        if (direction.length() > 24) {
+            direction = direction.substring(0, 24).strip();
         }
-        return List.of("建议明确目标岗位方向", "补充与目标岗位相关的关键词、项目和量化成果");
+        return direction;
+    }
+
+    private List<String> fallbackMissingSkills(String roleTitle, List<String> matchedSkills, List<String> projects) {
+        List<String> gaps = new ArrayList<>();
+        gaps.add("补充「" + roleTitle + "」相关 JD 中反复出现但简历未覆盖的要求");
+        if (!matchedSkills.isEmpty()) {
+            gaps.add("为「" + matchedSkills.get(0) + "」补充可验证结果或交付物");
+        }
+        if (!projects.isEmpty()) {
+            gaps.add("完善「" + shortText(projects.get(0), 36) + "」的量化结果和复盘结论");
+        }
+        return limitStrings(gaps, 6);
+    }
+
+    private List<String> fallbackPreparationTips(String roleTitle, List<String> matchedSkills, List<String> projects) {
+        List<String> tips = new ArrayList<>();
+        tips.add("围绕「" + roleTitle + "」准备 2 到 3 个能深入追问的经历案例");
+        if (!projects.isEmpty()) {
+            tips.add("把「" + shortText(projects.get(0), 36) + "」整理成背景、职责、动作、结果四段");
+        }
+        if (!matchedSkills.isEmpty()) {
+            tips.add("把「" + String.join("、", limitStrings(matchedSkills, 3)) + "」分别对应到具体经历证据");
+        }
+        return limitStrings(tips, 6);
+    }
+
+    private List<String> fallbackGaps(List<String> skills, List<String> projects, List<JobRecommendationItem> items) {
+        List<String> gaps = new ArrayList<>();
+        String direction = items.isEmpty() ? "目标岗位方向" : items.get(0).roleTitle();
+        gaps.add("对照「" + direction + "」补充 JD 中出现频率最高的要求");
+        if (skills == null || skills.isEmpty()) {
+            gaps.add("在简历中明确写出工具、方法或专业能力关键词");
+        } else {
+            gaps.add("把「" + String.join("、", limitStrings(skills, 3)) + "」写进具体经历的动作和结果里");
+        }
+        if (projects == null || projects.isEmpty()) {
+            gaps.add("补充一段能支撑「" + direction + "」的代表性经历");
+        } else {
+            gaps.add("为「" + shortText(projects.get(0), 36) + "」补充量化结果、交付物或复盘结论");
+        }
+        return limitStrings(gaps, 6);
     }
 
     private List<String> fallbackKeywords(List<JobRecommendationItem> items) {
         Set<String> keywords = new LinkedHashSet<>();
         for (JobRecommendationItem item : items) {
-            keywords.add(item.roleTitle());
-            keywords.add(item.roleTitle().replace("实习生", "实习"));
+            keywords.addAll(item.searchKeywords());
         }
         return new ArrayList<>(keywords);
+    }
+
+    private List<String> fallbackSearchKeywords(String roleTitle, List<String> matchedSkills) {
+        Set<String> keywords = new LinkedHashSet<>();
+        keywords.add(roleTitle);
+        String baseDirection = roleTitle.replace("方向", "").strip();
+        if (!baseDirection.isBlank()) {
+            keywords.add(baseDirection);
+        }
+        for (String skill : matchedSkills) {
+            keywords.add(skill);
+            if (keywords.size() >= 8) {
+                break;
+            }
+        }
+        return new ArrayList<>(keywords);
+    }
+
+    private String shortText(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength) + "...";
     }
 
     private String blankToDefault(String value, String fallback) {

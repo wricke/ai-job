@@ -26,11 +26,9 @@ public class AgentInfoController {
                 "provider", aiClient.providerName(),
                 "cacheEnabled", properties.getCache().isEnabled(),
                 "workflow", new String[]{
-                        "ResumeParserAgent",
-                        "JobAnalyzerAgent",
-                        "MatchScoringAgent",
-                        "SuggestionAgent",
-                        "InterviewAgent"
+                        "ProfileAnalysisAgent",
+                        "MatchEvaluationAgent",
+                        "CareerAdviceAgent"
                 }
         );
     }

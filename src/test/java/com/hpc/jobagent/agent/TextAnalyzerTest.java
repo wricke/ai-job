@@ -16,7 +16,19 @@ class TextAnalyzerTest {
                 """;
 
         assertThat(analyzer.findSkills(resume))
-                .contains("视觉设计", "交互设计", "SketchUp", "3ds Max", "Maya", "Photoshop", "Premiere", "After Effects", "VR 交互")
+                .contains("视觉设计", "交互设计", "SketchUp", "3ds Max", "Maya", "PS", "PR", "AE", "VR")
                 .doesNotContain("AI Agent", "Java", "Spring Boot", "MySQL");
+    }
+
+    @Test
+    void extractsNewDomainSignalsWithoutAddingAliasEntries() {
+        String resume = """
+                目标岗位：供应链运营实习。
+                熟悉采购协调、库存周转分析、供应商沟通，使用 Excel 和 Power BI 做每周补货报表。
+                项目经历：校园物资采购优化项目，负责需求汇总、供应商比价和交付进度跟踪。
+                """;
+
+        assertThat(analyzer.findSkills(resume))
+                .contains("供应链运营", "采购协调", "库存周转分析", "供应商沟通", "Excel", "Power BI");
     }
 }

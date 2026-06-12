@@ -206,6 +206,9 @@ public class AnalysisReportPdfService {
         names.put("MatchScoringAgent", "匹配评分");
         names.put("SuggestionAgent", "优化建议");
         names.put("InterviewAgent", "面试准备");
+        names.put("ProfileAnalysisAgent", "简历与岗位分析");
+        names.put("MatchEvaluationAgent", "匹配评估");
+        names.put("CareerAdviceAgent", "建议与面试准备");
         return names.getOrDefault(value, blankToDash(value));
     }
 

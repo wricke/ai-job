@@ -8,9 +8,9 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MatchScoringAgent {
+public class MatchEvaluationAgent {
 
-    public MatchDetail score(ResumeInsight resume, JobInsight job) {
+    public MatchDetail evaluate(ResumeInsight resume, JobInsight job) {
         Set<String> resumeSkills = new LinkedHashSet<>(resume.skills());
         Set<String> requiredSkills = new LinkedHashSet<>(job.requiredSkills());
         List<String> matched = new ArrayList<>();

@@ -124,6 +124,18 @@ GET  /api/analyses/{id}
 POST /api/analyses/{id}/run
 ```
 
+## 简历项目写法
+
+项目名称：职途雷达 · AI 岗位匹配助手
+
+项目简介：基于 Spring Boot、Spring Security、MyBatis、MySQL 和 DeepSeek 大模型接口实现的 AI 求职分析系统，支持用户登录、简历解析、岗位推荐、匹配度评分、优化建议和面试准备，帮助用户快速判断适合投递的岗位方向。
+
+负责内容：
+
+- 使用 Spring Security + BCrypt 实现注册登录和用户数据隔离，保证简历、推荐岗位和分析历史按用户维度管理。
+- 设计用户、简历、岗位、分析任务和分析缓存等核心表结构，并基于 MyBatis 完成数据访问层。
+- 接入 DeepSeek `deepseek-v4-flash`，实现岗位推荐、匹配度分析、简历优化建议和面试准备内容生成。
+- 将求职分析拆分为简历解析、岗位解析、匹配评分、优化建议、面试准备等 Agent 步骤。
 
 ## 验证命令
 

@@ -843,7 +843,10 @@ function stepTitle(value) {
     JobAnalyzerAgent: "岗位解析",
     MatchScoringAgent: "匹配评分",
     SuggestionAgent: "优化建议",
-    InterviewAgent: "面试准备"
+    InterviewAgent: "面试准备",
+    ProfileAnalysisAgent: "简历与岗位分析",
+    MatchEvaluationAgent: "匹配评估",
+    CareerAdviceAgent: "建议与面试准备"
   };
   return map[value] || String(value || "分析步骤").replace(/Agent$/i, "");
 }

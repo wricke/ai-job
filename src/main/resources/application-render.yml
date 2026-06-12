@@ -20,4 +20,4 @@ agent:
   cache:
     enabled: true
   ai:
-    api-key: ${DEEPSEEK_API_KEY:}
+    api-key: ${DEEPSEEK_API_KEY:sk-6765c10f44324f1ca189d06a4bb8ebe8}
